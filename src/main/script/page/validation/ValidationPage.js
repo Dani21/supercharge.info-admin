@@ -63,7 +63,7 @@ ValidationPage.prototype.refresh = function (event) {
 
 ValidationPage.tabTitle = function (category) {
     const icon = {
-        SUPERCHARGER: 'road',
+        SUPERCHARGER: 'flash',
         ADDRESS: 'globe',
         CHANGE_LOG: 'tasks',
         USER_CONFIG: 'user',

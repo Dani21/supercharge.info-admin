@@ -6,9 +6,9 @@ const EditEvents = {
     site_list_changed: "site_list_changed",
 
     /**
-     * Indicates that the current site has been deleted, and that the form should be reset/list reloaded.
+     * Indicates that the current site has been saved, and that the response should be handled.
      */
-    site_deleted: "site_deleted",
+    site_saved: "site_saved",
 
     /**
      * The 'delete' button on one site has been clicked.

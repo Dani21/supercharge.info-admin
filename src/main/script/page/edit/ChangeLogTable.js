@@ -114,7 +114,9 @@ export default class ChangeLogTable {
 
     static handleAddClick(event) {
         event.preventDefault();
-        const status = $('#site-edit-form select[name="status"]').clone().removeProp('name');
+        const status = $('#site-edit-form select[name="status"]').clone()
+            .removeProp('name').prop('disabled', false)
+            .children(':contains("ARCHIVED")').remove().end();
         const notify = ChangeLogTable.buildNotifyButton(false);
         $(event.target).closest('table').find('tbody').prepend(`<tr>
             <td>
@@ -153,7 +155,11 @@ export default class ChangeLogTable {
         const notify = tds.eq(5);
 
         date.html($('<input type="date">').val(new Date(date.text()).toISOString().split('T')[0]).data('original', date.text()));
-        status.html($('#site-edit-form select[name="status"]').clone().removeProp('name').val(status.text()).data('original', status.text()));
+        status.html(
+            $('#site-edit-form select[name="status"]').clone()
+                .removeProp('name').val(status.text()).data('original', status.text())
+                .prop('disabled', false).children(':contains("ARCHIVED")').remove().end()
+        );
         notify.html(ChangeLogTable.buildNotifyButton(notify.text() == 'Yes').data('original', notify.text()));
         link.attr('class', 'save-change-log').addClass('btn btn-primary btn-xs').text('save').next()
             .attr('class', 'cancel-edit-change-log').addClass('btn btn-danger btn-xs').text('cancel');

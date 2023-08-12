@@ -1,6 +1,7 @@
 import 'bootstrap';
 import EventBus from "../util/EventBus";
 import Events from "../util/Events";
+import EditEvents from "../page/edit/EditEvents";
 import URL from "../URL";
 import LoginDialog from "./LoginDialog";
 import ApiPage from "../page/api/ApiPage";
@@ -133,6 +134,7 @@ export default class NavBar {
             this.usernameLink.hide();
             this.loginLink.show();
             EventBus.dispatch("change-page", "api");
+            EventBus.dispatch(EditEvents.site_reset);
         }
     }
 }

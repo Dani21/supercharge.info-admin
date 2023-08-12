@@ -1,4 +1,9 @@
 const Status = {
+    ARCHIVED: {
+        value: 'ARCHIVED',
+        displayName: "Archived/Hidden",
+        className: "label label-danger"
+    },
     CLOSED_PERM: {
         value: 'CLOSED_PERM',
         displayName: "Closed Permanently",

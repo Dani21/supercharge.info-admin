@@ -1,4 +1,5 @@
 import "jquery-serializejson";
+import {currentUser} from "../../nav/User";
 import URL from "../../URL";
 import FormFiller from "../../util/FormFiller";
 import EventBus from "../../util/EventBus";
@@ -14,7 +15,7 @@ export default class EditForm {
 
         EventBus.addListener(EditEvents.site_loaded, this.loadNewSite, this);
         EventBus.addListener(EditEvents.site_reset, this.resetForm, this);
-        EventBus.addListener(EditEvents.site_deleted, this.handleDeleteResponse, this);
+        EventBus.addListener(EditEvents.site_saved, this.handleSaveResponse, this);
         EventBus.addListener(EditEvents.load_history_complete, this.historyButtonUpdate, this);
         EventBus.addListener(EditEvents.load_change_log_complete, this.changeLogButtonUpdate, this);
 
@@ -70,20 +71,12 @@ export default class EditForm {
             url: URL.site.edit,
             contentType: "application/json",
             data: JSON.stringify(data),
-            success: $.proxy(this.handleSaveResponse, this),
+            success: d => EventBus.dispatch(EditEvents.site_saved, d),
             dataType: "json"
         });
     }
 
-    handleDeleteResponse(event, siteId) {
-        this.resetForm();
-        this.handleSaveResponse({
-            result: 'DELETED',
-            messages: [`Site ${siteId} has been successfully deleted.`]
-        });
-    }
-
-    handleSaveResponse(response) {
+    handleSaveResponse(event, response) {
         const ok = response.result === 'SUCCESS';
         this.messageBox.addClass('alert').html('')
             .removeClass(ok ? 'alert-danger' : 'alert-success')
@@ -92,7 +85,7 @@ export default class EditForm {
         const icon = `<span class="glyphicon glyphicon-${ok ? 'ok' : 'exclamation-sign'}"></span>`;
         this.messageBox.append(response.messages.map(v => `${icon} ${v}<br />`));
 
-        if (response.result === "SUCCESS") {
+        if (ok) {
             this.isReload = true;
             EventBus.dispatch(EditEvents.site_edit_selection, response.siteId);
             EventBus.dispatch(EditEvents.site_list_changed);
@@ -112,11 +105,21 @@ export default class EditForm {
 
         /* populate form */
         FormFiller.populateForm(this.siteEditForm, site);
+        if (site.status == 'ARCHIVED') {
+            const statusSelect = this.siteEditForm.find('select[name="status"]');
+            statusSelect.prepend('<option>ARCHIVED</option>').val('ARCHIVED');
+            if (!currentUser.hasRole('admin')) {
+                statusSelect.prop('disabled', true);
+            }
+        }
         this.handleStatusChange(true);
         const date = this.siteEditForm.find('input[name="dateModified"]');
         date.val(new Date(date.val()).toLocaleString());
         this.siteEditForm.find('input[name="notify"][value="yes"]').closest('.btn').button('toggle');
         this.enableButtons(true);
+        if (site.status == 'ARCHIVED') {
+            this.deleteButton.prop('disabled', true);
+        }
         $('html').animate({ scrollTop: 0, scrollLeft: 0 });
     }
 
@@ -159,6 +162,11 @@ export default class EditForm {
     handleStatusChange(reset) {
         const newStatus = this.siteEditForm.find('select[name="status"]').val();
         if (reset) {
+            if (newStatus != 'ARCHIVED') {
+                this.siteEditForm.find('select[name="status"]').prop('disabled', false).find('option').remove(':contains("ARCHIVED")');
+            } else {
+                this.siteEditForm.find('select[name="status"] option:contains("ARCHIVED"):not(:selected)').remove();
+            }
             if (this.siteEditForm.find("input[name='id']").val()) {
                 this.status = newStatus;
             } else {
